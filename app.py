@@ -1,40 +1,31 @@
-import os
 from flask import Flask, request
 from google import genai
+import os
+import traceback
 
 app = Flask(__name__)
-
-# Inicializa el cliente de Gemini (busca automáticamente la variable GEMINI_API_KEY en Render)
-client = genai.Client()
+client = genai.Client(api_key=os.environ.get("GEMINI_API_KEY"))
 
 @app.route('/chat', methods=['POST'])
 def chat():
-    # 1. Recibir los datos en JSON enviados por el ESP8266
-    data = request.get_json()
-    
-    if not data or 'prompt' not in data:
-        return "Error: No prompt", 400
-    
-    user_prompt = data['prompt']
-    
     try:
-        # 2. Consultar directamente al modelo de Gemini
+        # Intentar leer como JSON o texto plano por respaldo
+        data = request.get_json(silent=True)
+        if data and 'prompt' in data:
+            user_message = data['prompt']
+        else:
+            user_message = request.data.decode('utf-8')
+            
         response = client.models.generate_content(
             model='gemini-1.5-flash',
-            contents=user_prompt,
+            contents=user_message
         )
+        return response.text, 200
         
-        # Extraer el texto de la respuesta
-        respuesta_ia = response.text
-        
-        # 3. Limpiar saltos de línea para que no rompan la pantalla LCD de 16x2
-        respuesta_limpia = str(respuesta_ia).strip().replace('\n', ' ')
-
-        # 4. Devolver estrictamente texto plano en crudo
-        return respuesta_limpia, 200, {'Content-Type': 'text/plain; charset=utf-8'}
-
     except Exception as e:
-        return f"Error: {str(e)}", 500
+        error_trace = traceback.format_exc()
+        print("Error detallado:", error_trace)
+        return f"Excepcion: {str(e)}", 500
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000)
+    app.run(host='0.0.0.0', port=10000)
