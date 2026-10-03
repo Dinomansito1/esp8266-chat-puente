@@ -18,9 +18,9 @@ def chat():
     user_prompt = data['prompt']
     
     try:
-        # 2. Consultar directamente al modelo Flash gratuito de Gemini
+        # 2. Consultar directamente al modelo de Gemini
         response = client.models.generate_content(
-            model='gemini-2.5-flash',
+            model='gemini-1.5-flash',
             contents=user_prompt,
         )
         
