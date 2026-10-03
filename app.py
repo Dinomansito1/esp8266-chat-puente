@@ -1,17 +1,15 @@
-from flask import Flask, request
+from flask import Flask, request, jsonify
 
 app = Flask(__name__)
 
 @app.route('/chat', methods=['POST'])
+app.route('/chat', methods=['POST'])
 def chat():
-    data = request.json
+    data = request.get_json()
     prompt = data.get('prompt', '')
-
-    # Aquí puedes procesar el texto que mande el ESP8266
-    # De momento, devolveremos un eco de prueba corto para el LCD
-    respuesta = f"Hola! Dijiste: {prompt}"
-
-    return respuesta
-
-if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000)
+    
+    # Aquí llamas a tu lógica de ChatGPT / IA para obtener el texto plano de respuesta:
+    respuesta_ia = "Hola, esta es la respuesta de prueba" # (Reemplaza esto por la respuesta real de tu IA)
+    
+    # DEVUELVE SOLO EL TEXTO PLANO (o un JSON limpio, pero texto plano es más fácil de leer en la LCD):
+    return respuesta_ia, 200, {'Content-Type': 'text/plain; charset=utf-8'}
