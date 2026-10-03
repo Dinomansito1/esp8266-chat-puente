@@ -1,6 +1,8 @@
 from flask import Flask, request
 from google import genai
+from google.genai.errors import ServerError
 import os
+import time
 import traceback
 
 app = Flask(__name__)
@@ -16,10 +18,22 @@ def chat():
         else:
             user_message = request.data.decode('utf-8')
             
-        response = client.models.generate_content(
-            model='gemini-3.8-flash',
-            contents=user_message
-        )
+        # Sistema de reintentos ante caídas temporales del servidor (Error 503)
+        intentos = 3
+        response = None
+        
+        for i in range(intentos):
+            try:
+                response = client.models.generate_content(
+                    model='gemini-3.8-flash',
+                    contents=user_message
+                )
+                break
+            except ServerError as e:
+                if i == intentos - 1:
+                    raise e
+                time.sleep(1) # Espera 1 segundo antes de reintentar
+                
         return response.text, 200
         
     except Exception as e:
